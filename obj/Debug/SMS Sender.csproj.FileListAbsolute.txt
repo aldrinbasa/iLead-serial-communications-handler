@@ -1,0 +1,35 @@
+C:\Users\XyPh0z\Desktop\TORRENTS\SMS Sender\bin\Debug\SMS Sender.exe.config
+C:\Users\XyPh0z\Desktop\TORRENTS\SMS Sender\obj\Debug\SMS Sender.exe
+C:\Users\XyPh0z\Desktop\TORRENTS\SMS Sender\obj\Debug\SMS Sender.pdb
+C:\Users\XyPh0z\Desktop\TORRENTS\SMS Sender\bin\Debug\SMS Sender.exe
+C:\Users\XyPh0z\Desktop\TORRENTS\SMS Sender\bin\Debug\SMS Sender.pdb
+C:\Users\XyPh0z\Desktop\TORRENTS\SMS Sender\bin\Debug\MySql.Data.dll
+C:\Users\XyPh0z\Desktop\TORRENTS\SMS Sender\obj\Debug\SMS_Sender.form_main.resources
+C:\Users\XyPh0z\Desktop\TORRENTS\SMS Sender\obj\Debug\SMS_Sender.Properties.Resources.resources
+C:\Users\XyPh0z\Desktop\TORRENTS\SMS Sender\obj\Debug\SMS Sender.csproj.GenerateResource.Cache
+C:\Users\XyPh0z\Desktop\TORRENTS\SMS Sender\obj\Debug\SMS_Sender.form_add_promo.resources
+C:\Users\XyPh0z\Desktop\TORRENTS\SMS Sender\obj\Debug\SMS_Sender.form_edit_promo.resources
+C:\Users\XyPh0z\Desktop\TORRENTS\SMS Sender\obj\Debug\SMS_Sender.form_generate.resources
+C:\Users\XyPh0z\Desktop\TORRENTS\SMS Sender\obj\Debug\SMS Sender.csprojResolveAssemblyReference.cache
+C:\Users\XyPh0z\Desktop\TORRENTS\SMS Sender\obj\Debug\SMS_Sender.form_help_reply.resources
+C:\Users\XyPh0z\Desktop\TORRENTS\SMS Sender\obj\Debug\SMS_Sender.form_adjust.resources
+C:\Users\XyPh0z\Desktop\TORRENTS\SMS Sender\obj\Debug\SMS_Sender.form_port_config.resources
+C:\Users\aldri\Documents\Visual Studio 2019\SMS Sender\bin\Debug\SMS Sender.exe.config
+C:\Users\aldri\Documents\Visual Studio 2019\SMS Sender\bin\Debug\SMS Sender.exe
+C:\Users\aldri\Documents\Visual Studio 2019\SMS Sender\bin\Debug\SMS Sender.pdb
+C:\Users\aldri\Documents\Visual Studio 2019\SMS Sender\bin\Debug\MySql.Data.dll
+C:\Users\aldri\Documents\Visual Studio 2019\SMS Sender\obj\Debug\SMS Sender.csprojAssemblyReference.cache
+C:\Users\aldri\Documents\Visual Studio 2019\SMS Sender\obj\Debug\SMS_Sender.form_add_promo.resources
+C:\Users\aldri\Documents\Visual Studio 2019\SMS Sender\obj\Debug\SMS_Sender.form_adjust.resources
+C:\Users\aldri\Documents\Visual Studio 2019\SMS Sender\obj\Debug\SMS_Sender.form_edit_promo.resources
+C:\Users\aldri\Documents\Visual Studio 2019\SMS Sender\obj\Debug\SMS_Sender.form_generate.resources
+C:\Users\aldri\Documents\Visual Studio 2019\SMS Sender\obj\Debug\SMS_Sender.form_help_reply.resources
+C:\Users\aldri\Documents\Visual Studio 2019\SMS Sender\obj\Debug\SMS_Sender.form_main.resources
+C:\Users\aldri\Documents\Visual Studio 2019\SMS Sender\obj\Debug\SMS_Sender.form_port_config.resources
+C:\Users\aldri\Documents\Visual Studio 2019\SMS Sender\obj\Debug\SMS_Sender.Properties.Resources.resources
+C:\Users\aldri\Documents\Visual Studio 2019\SMS Sender\obj\Debug\SMS Sender.csproj.GenerateResource.cache
+C:\Users\aldri\Documents\Visual Studio 2019\SMS Sender\obj\Debug\SMS Sender.csproj.CoreCompileInputs.cache
+C:\Users\aldri\Documents\Visual Studio 2019\SMS Sender\obj\Debug\SMS Sender.csproj.CopyComplete
+C:\Users\aldri\Documents\Visual Studio 2019\SMS Sender\obj\Debug\SMS Sender.exe
+C:\Users\aldri\Documents\Visual Studio 2019\SMS Sender\obj\Debug\SMS Sender.pdb
+C:\Users\aldri\Documents\Visual Studio 2019\SMS Sender\obj\Debug\SMS_Sender.form_port_assign.resources
