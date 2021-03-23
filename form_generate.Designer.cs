@@ -28,9 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.dgvCode = new System.Windows.Forms.DataGridView();
             this._ID = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -84,8 +84,8 @@
             // 
             // _ID
             // 
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            this._ID.DefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            this._ID.DefaultCellStyle = dataGridViewCellStyle4;
             this._ID.HeaderText = "ID";
             this._ID.Name = "_ID";
             this._ID.ReadOnly = true;
@@ -95,8 +95,8 @@
             // _CODE
             // 
             this._CODE.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            this._CODE.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            this._CODE.DefaultCellStyle = dataGridViewCellStyle5;
             this._CODE.HeaderText = "CODE";
             this._CODE.Name = "_CODE";
             this._CODE.ReadOnly = true;
@@ -104,8 +104,8 @@
             // 
             // _TYPE
             // 
-            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            this._TYPE.DefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            this._TYPE.DefaultCellStyle = dataGridViewCellStyle6;
             this._TYPE.HeaderText = "TYPE";
             this._TYPE.Name = "_TYPE";
             this._TYPE.ReadOnly = true;
@@ -162,9 +162,9 @@
             this.cmbFor.Items.AddRange(new object[] {
             "DISTRIBUTOR",
             "DEALER",
-            "MOBILE STOCKIEST",
-            "CITY STOCKIEST",
-            "PROVINCIAL STOCKIEST"});
+            "MOBILE",
+            "CITY",
+            "PROVINCIAL"});
             this.cmbFor.Location = new System.Drawing.Point(36, 3);
             this.cmbFor.Name = "cmbFor";
             this.cmbFor.Size = new System.Drawing.Size(256, 21);

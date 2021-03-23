@@ -277,8 +277,6 @@ namespace SMS_Sender
                                     string number = _senderNbr.Trim(prefix);
                                     number = "0" + number;
 
-                                    MessageBox.Show(number);
-
                                     if (userExists(number)) {
 
                                         if (hasLoadBalance(number, 15)) {
@@ -367,13 +365,17 @@ namespace SMS_Sender
                                                     if (loadOK)
                                                     {
                                                         deductLoad(_senderNbr, loadAMT);
+                                                        recordIncome(_senderNbr, (decimal.Parse(loadAMT) * percentLoad), "LOAD", refno, DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"));
                                                         var acctINFO = accountInfo(_senderNbr);
                                                         Thread.Sleep(1000);
-                                                        sendMsg(3, "Load Success!" + Environment.NewLine +
+                                                        sendMsg(3, "Load Success! You have issued P" + loadAMT + "(" + (decimal.Parse(loadAMT)*(1-percentLoad)) + ") " +
                                                         "Cust #: " + _messageSplit[1] + Environment.NewLine +
                                                         "Curr bal: " + acctINFO[0].toFinancial() + Environment.NewLine +
                                                         "Ref #: " + refno + Environment.NewLine + Environment.NewLine +
                                                             DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), _senderNbr);
+                                                    }
+                                                    else {
+                                                        sendMsg(3, "Load Failed. Invalid product code, please use the correct product code.", _senderNbr);
                                                     }
                                                 }
                                                 else
@@ -428,13 +430,17 @@ namespace SMS_Sender
                                                     if (loadOK)
                                                     {
                                                         deductLoad(_senderNbr, loadAMT);
+                                                        recordIncome(_senderNbr, (decimal.Parse(loadAMT) * percentLoad), "LOAD", refno, DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"));
                                                         var acctINFO = accountInfo(_senderNbr);
                                                         Thread.Sleep(1000);
-                                                        sendMsg(3, "Load Success!" + Environment.NewLine +
+                                                        sendMsg(3, "Load Success! You have issued P" + loadAMT + "(" + (decimal.Parse(loadAMT) * (1 - percentLoad)) + ") " +
                                                         "Cust #: " + _messageSplit[1] + Environment.NewLine +
                                                         "Curr bal: " + acctINFO[0].toFinancial() + Environment.NewLine +
                                                         "Ref #: " + refno + Environment.NewLine + Environment.NewLine +
                                                             DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), _senderNbr);
+                                                    }
+                                                    else {
+                                                        sendMsg(3, "Load Failed. Invalid product code, please use the correct product code.", _senderNbr);
                                                     }
                                                 }
                                                 else
@@ -463,10 +469,11 @@ namespace SMS_Sender
                                                     string _loadCarrier = identifyCarrier(_msgLoad[0]);
                                                     bool loadOK = false;
                                                     string loadAMT = "";
-
                                                     //CHECK IF THERE'S SAME MESSAGE 30 MINS AGO
                                                     if (!has30minsText(_message.Trim(), _senderNbr))
                                                     {
+
+                                                        bool noLoadBalance = false;
                                                         //GET THE LIST OF AVAILABLE CODE DEPENDING ON THE CARRIER!
                                                         DataRow[] _tempCode = new DataRow[0];
                                                         if (_carrier.Contains("/"))
@@ -532,7 +539,12 @@ namespace SMS_Sender
                                                                         if (smartActive)
                                                                         {
                                                                             loadOK = true;
-                                                                            sendMsg(6, dr[2].ToString() + " " + _msgLoad[0], "343");
+                                                                            if (dr[2].ToString().Contains('P')) {
+                                                                                sendMsg(6, "Load " + dr[2].ToString().Split('P')[1].Trim() + " " + _msgLoad[0], "343");
+                                                                            }
+                                                                            else {
+                                                                                sendMsg(6, "Load " + dr[2].ToString() + " " + _msgLoad[0], "343");
+                                                                            }
                                                                             break;
                                                                         }
                                                                         else
@@ -548,7 +560,14 @@ namespace SMS_Sender
                                                                         if (smartActive)
                                                                         {
                                                                             loadOK = true;
-                                                                            sendMsg(6, dr[2].ToString() + " " + _msgLoad[0], "4540");
+                                                                            
+
+                                                                            if (dr[2].ToString().Contains('P')) {
+                                                                                sendMsg(6, "Load " + dr[2].ToString().Split('P')[1].Trim() + " " + _msgLoad[0], "343");
+                                                                            }
+                                                                            else {
+                                                                                sendMsg(6, "Load " + dr[2].ToString() + " " + _msgLoad[0], "4540");
+                                                                            }
                                                                             break;
                                                                         }
                                                                         else
@@ -562,6 +581,7 @@ namespace SMS_Sender
                                                                 else
                                                                 {
                                                                     sendMsg(3, "Load Failed! You don't have enough load balance to make this transaction.", _senderNbr);
+                                                                    noLoadBalance = true;
                                                                     break;
                                                                 }
                                                             }
@@ -570,13 +590,19 @@ namespace SMS_Sender
                                                         if (loadOK)
                                                         {
                                                             deductLoad(_senderNbr, loadAMT);
+                                                            recordIncome(_senderNbr, (decimal.Parse(loadAMT) * percentLoad), "LOAD", refno, DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"));
                                                             var acctINFO = accountInfo(_senderNbr);
                                                             Thread.Sleep(1000);
-                                                            sendMsg(3, "Load Success!" + Environment.NewLine +
+                                                            sendMsg(3, "Load Success! You have issued P" + loadAMT + "(" + (decimal.Parse(loadAMT) * (1 - percentLoad)) + ") " +
                                                             "Cust #: " + _msgLoad[0] + Environment.NewLine +
                                                             "Curr bal: " + acctINFO[0].toFinancial() + Environment.NewLine +
                                                             "Ref #: " + refno + Environment.NewLine + Environment.NewLine +
                                                                 DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), _senderNbr);
+                                                        }
+                                                        else {
+                                                            if (!noLoadBalance && smartActive && globeActive) {
+                                                                sendMsg(3, "Load Failed. Invalid product code, please use the correct product code. (590)", _senderNbr);
+                                                            }
                                                         }
                                                     }
                                                     else
@@ -588,8 +614,123 @@ namespace SMS_Sender
                                                 #region REPEATING MESSAGE
                                                 else if (_msgType.EqualsIgnoreCase("REP"))
                                                 {
+                                                    List<string> _messageList = _message.Split(' ').ToList();
+                                                    _messageList.RemoveAt(0);
+                                                    _message = string.Join(" ", _messageList.ToArray());
+
+                                                    if (_message.Trim().Split(' ')[0].EqualsIgnoreCase("TTU")) {
+                                                        var position = db.QueryDT("SELECT _ROLE FROM tbl_users WHERE _PHONE = '" + _senderNbr + "'").ValueString("_ROLE", 0);
+                                                        string nbr = _message.Trim().Split(' ')[1].Trim();
+                                                        string amt = _message.Trim().Split(' ')[2].Trim();
+
+                                                        if (nbr != _senderNbr)
+                                                        {
+                                                            if (position != "RETAILER") {
+                                                                if (userExists(nbr)) {
+                                                                    if (isLessEqual(_senderNbr, nbr)) {
+                                                                        if (hasPINS(_senderNbr, int.Parse(amt))) {
+                                                                            try {
+                                                                                if (has30minsPINS(_senderNbr, nbr, amt)) {
+                                                                                    transferPins(_senderNbr, nbr, int.Parse(amt));
+                                                                                    var acctINFO1 = accountInfo(_senderNbr);
+                                                                                    var acctINFO2 = accountInfo(nbr);
+                                                                                    string txtRefno = InputHelper.GenRefNo;
+                                                                                    sendMsg(3, "You have received " + amt + " PINS from " + _senderNbr + "." + Environment.NewLine + "Available TU Pins: " + int.Parse(acctINFO2[1]).ToString("#,##0") + Environment.NewLine + "Ref No. " + txtRefno + Environment.NewLine + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), nbr);
+                                                                                    Thread.Sleep(500);
+                                                                                    sendMsg(3, "You have issued " + amt + " PINS to " + nbr + "." + Environment.NewLine + "New PIN balance " + int.Parse(acctINFO1[1]).ToString("#,##0") + Environment.NewLine + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), _senderNbr);
+                                                                                    Thread.Sleep(500);
+                                                                                    sendMsg(3, "Ref No. " + txtRefno + Environment.NewLine + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), _senderNbr);
+                                                                                    var name = db.QueryDT("SELECT * FROM tbl_users WHERE _PHONE = '" + nbr + "'").ValueString("_FULLNAME", 0);
+                                                                                    insertPINHistory(_senderNbr, amt, nbr, name, acctINFO2[1], txtRefno, DateTime.Now.ToString("yyyy-MM-dd HH:mm:tt"));
+                                                                                }
+                                                                                else
+                                                                                    sendMsg(3, "The transaction can only be repeated after 30 minutes.", _senderNbr);
+                                                                            }
+                                                                            catch {
+                                                                                sendMsg(3, "Invalid command. Please make sure your format is correct and your message does not exceed 160 characters.", _senderNbr);
+                                                                            }
+                                                                        }
+                                                                        else
+                                                                            sendMsg(3, "The transaction could not be completed, you have insufficient balance.", _senderNbr);
+                                                                    }
+                                                                    else
+                                                                        sendMsg(3, "You are not allowed to transfer to higher account.", _senderNbr);
+                                                                }
+                                                                else
+                                                                    sendMsg(3, "Receiver is not registered in the system.", _senderNbr);
+                                                            }
+                                                            else
+                                                                sendMsg(3, "You are not allowed to transfer to higher account.", _senderNbr);
+                                                        }
+                                                        else
+                                                        {
+                                                            sendMsg(3, "You are not allowed to transfer pins to your own account.", _senderNbr);
+                                                        }
+                                                    }
+
+                                                    if (_message.Trim().Split(' ')[0].EqualsIgnoreCase("TLC")) {
+                                                        string nbr = _message.Split(' ')[1].Trim();
+                                                        string amt = _message.Split(' ')[2].Trim();
+                                                        decimal decAmt = decimal.Parse(amt);
+
+                                                        string senderRole = db.QueryDT("SELECT * FROM tbl_users WHERE _PHONE = '" + _senderNbr + "'").ValueString("_ROLE", 0);
+                                                        string receiverRole = db.QueryDT("SELECT * FROM tbl_users WHERE _PHONE = '" + nbr + "'").ValueString("_ROLE", 0);
+
+                                                        bool equalLevel = (senderRole == receiverRole);
+
+                                                        if (nbr != _senderNbr)
+                                                        {
+                                                            if (userExists(nbr)) {
+                                                                if (hasLoadBalance(_senderNbr, decimal.Parse(amt))) {
+                                                                    if (decAmt > 49) {
+                                                                        try {
+                                                                            if (isLessEqual(_senderNbr, nbr)) {
+                                                                                string txtRefno = InputHelper.GenRefNo;
+                                                                                percentLoad = setPercentToBeDeducted(_senderNbr, nbr);
+                                                                                transferLoadWallet(_senderNbr, nbr, decAmt);
+                                                                                recordIncome(_senderNbr, (decAmt * percentLoad), "TLC", txtRefno, DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"));
+                                                                                var acctINFO1 = accountInfo(_senderNbr);
+                                                                                var acctINFO2 = accountInfo(nbr);
+                                                                                Thread.Sleep(500);
+                                                                                if (equalLevel) {
+                                                                                    sendMsg(3, "You have issued P " + decAmt.ToString("#,##0.00") + "(" + decAmt.ToString("#,##0.00") + ")" + " load to " + nbr + ". " + "New load balance P " + decimal.Parse(acctINFO1[0]).ToString("#,##0.00") + ". " + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), _senderNbr);
+                                                                                }
+                                                                                else {
+                                                                                    sendMsg(3, "You have issued P " + decAmt.ToString("#,##0.00") + " (" + (decAmt - (decAmt * percentLoad)).ToString("#,##0.00") + ") load to " + nbr + ". " + "New load balance P " + decimal.Parse(acctINFO1[0]).ToString("#,##0.00") + ". " + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), _senderNbr);
+                                                                                }
+                                                                                Thread.Sleep(500);
+                                                                                sendMsg(3, "Ref No. " + txtRefno + ". " + Environment.NewLine + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), _senderNbr);
+                                                                                Thread.Sleep(500);
+                                                                                sendMsg(3, "You have received P " + decAmt.ToString("#,##0.00") + " load from " + _senderNbr + "." + Environment.NewLine + "New load balance P " + decimal.Parse(acctINFO2[0]).ToString("#,##0.00") + " " + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), nbr);
+                                                                                Thread.Sleep(500);
+                                                                                sendMsg(3, "Ref No. " + txtRefno + ". " + Environment.NewLine + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), nbr);
+                                                                                insertTLCHistory(_senderNbr, acctINFO1[0], nbr, acctINFO2[0], txtRefno, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), amt);
+                                                                            }
+                                                                            else
+                                                                                sendMsg(3, "You are not allowed to transfer to this account.", _senderNbr);
+                                                                        }
+                                                                        catch (Exception e) {
+                                                                            sendMsg(3, "Invalid command. Please make sure your format is correct and your message does not exceed 160 characters.", _senderNbr);
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                        sendMsg(3, "The minimum amount that can be transferred is P 50.00", _senderNbr);
+                                                                }
+                                                                else
+                                                                    sendMsg(3, "The transaction could not be completed, you have insufficient balance.", _senderNbr);
+                                                            }
+                                                            else
+                                                                sendMsg(3, "Receiver is not registered in the system.", _senderNbr);
+                                                        }
+                                                        else
+                                                        {
+                                                            sendMsg(3, "You can not send load credits to your own number.", _senderNbr);
+                                                        }
+                                                        
+                                                    }
+                                                    
                                                     string[] _msgLoad = _message.Split(' ');
-                                                    string _loadCarrier = identifyCarrier(_msgLoad[1]);
+                                                    string _loadCarrier = identifyCarrier(_msgLoad[0]);
                                                     bool loadOK = false;
                                                     string loadAMT = "";
 
@@ -605,9 +746,10 @@ namespace SMS_Sender
                                                         _tempCode = dtCodes.Select("_CARRIER = '" + _loadCarrier + "'", "");
                                                     }
 
+
                                                     foreach (DataRow dr in _tempCode)
                                                     {
-                                                        if (dr[2].ToString() == _msgLoad[2].Trim())
+                                                        if (dr[2].ToString() == _msgLoad[1].Trim())
                                                         {
                                                             loadAMT = dr[3].ToString();
                                                             if (hasLoadBalance(_senderNbr, decimal.Parse(loadAMT)))
@@ -615,7 +757,7 @@ namespace SMS_Sender
                                                                 //INSERT MESSAGE AS PENDING FIRST
                                                                 insertPending(_senderNbr,
                                                                     dr["_CARRIER"].ToString(),
-                                                                    _msgLoad[1],
+                                                                    _msgLoad[0],
                                                                     dr[3].ToString(),
                                                                     _message,
                                                                     _dateTime,
@@ -636,8 +778,7 @@ namespace SMS_Sender
                                                                                 var _tmpUSSDCode = dtUSSDCode.Select("_CARRIER LIKE '%" + _tempCarrier[i] + "' OR _CARRIER LIKE '" + _tempCarrier[i] + "%' OR _CARRIER = '" + _loadCarrier + "'", "");
                                                                                 if (_tmpUSSDCode.Length > 0)
                                                                                 {
-                                                                                    loadOK = true;
-                                                                                    sendUSSD(7, _tmpUSSDCode[0]["_CODE"].ToString());
+                                                                                    loadOK = true;sendUSSD(7, _tmpUSSDCode[0]["_CODE"].ToString());
                                                                                     loadQueue.Add(dr[6].ToString() + _msgLoad[0]);
                                                                                     break;
                                                                                 }
@@ -658,7 +799,12 @@ namespace SMS_Sender
                                                                     if (smartActive)
                                                                     {
                                                                         loadOK = true;
-                                                                        sendMsg(6, dr[2].ToString() + " " + _msgLoad[1], "343");
+                                                                        if (dr[2].ToString().Contains('P')) {
+                                                                            sendMsg(6, "Load " + dr[2].ToString().Split('P')[1].Trim() + " " + _msgLoad[0], "343");
+                                                                        }
+                                                                        else {
+                                                                            sendMsg(6, "Load " + dr[2].ToString() + " " + _msgLoad[0], "343");
+                                                                        }
                                                                         break;
                                                                     }
                                                                     else
@@ -674,7 +820,12 @@ namespace SMS_Sender
                                                                     if (smartActive)
                                                                     {
                                                                         loadOK = true;
-                                                                        sendMsg(6, dr[2].ToString() + " " + _msgLoad[1], "4540");
+                                                                        if (dr[2].ToString().Contains('P')) {
+                                                                            sendMsg(6, "Load " + dr[2].ToString().Split('P')[1].Trim() + " " + _msgLoad[0], "343");
+                                                                        }
+                                                                        else {
+                                                                            sendMsg(6, "Load " + dr[2].ToString() + " " + _msgLoad[0], "343");
+                                                                        }
                                                                         break;
                                                                     }
                                                                     else
@@ -696,13 +847,20 @@ namespace SMS_Sender
                                                     if (loadOK)
                                                     {
                                                         deductLoad(_senderNbr, loadAMT);
+                                                        recordIncome(_senderNbr, (decimal.Parse(loadAMT) * percentLoad), "LOAD", refno, DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"));
                                                         var acctINFO = accountInfo(_senderNbr);
                                                         Thread.Sleep(1000);
-                                                        sendMsg(3, "Load Success!" + Environment.NewLine +
-                                                        "Cust #: " + _msgLoad[1] + Environment.NewLine +
+                                                        sendMsg(3, "Load Success! You have issued P" + loadAMT + "(" + (decimal.Parse(loadAMT) * (1 - percentLoad)) + ") " +
+                                                        "Cust #: " + _msgLoad[0] + Environment.NewLine +
                                                         "Curr bal: " + acctINFO[0].toFinancial() + Environment.NewLine +
                                                         "Ref #: " + refno + Environment.NewLine + Environment.NewLine +
                                                             DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), _senderNbr);
+                                                    }
+                                                    else {
+                                                        bool prefixNotLoad = !(_message.Trim().Split(' ')[0].EqualsIgnoreCase("TTU") || _message.Trim().Split(' ')[0].EqualsIgnoreCase("TLC"));
+                                                        if (prefixNotLoad) {
+                                                            sendMsg(3, "Load Failed. Invalid product code, please use the correct product code. (836)", _senderNbr);
+                                                        }
                                                     }
                                                 }
                                                 #endregion
@@ -710,178 +868,183 @@ namespace SMS_Sender
                                                 else if (_msgType.EqualsIgnoreCase("TLC"))
                                                 {
                                                     _message = _message.Trim();
-                                                    string nbr = _message.Split(' ')[2].Trim();
-                                                    string amt = _message.Split(' ')[3].Trim();
+                                                    string nbr = _message.Split(' ')[1].Trim();
+                                                    string amt = _message.Split(' ')[2].Trim();
                                                     decimal decAmt = decimal.Parse(amt);
 
-                                                    if (!has30minsTLC(_senderNbr))
-                                                    {
-                                                        if (isLessEqual(_senderNbr, nbr))
-                                                        {
-                                                            if (hasLoadBalance(_senderNbr, decimal.Parse(amt)))
-                                                            {
-                                                                if (decAmt > 99)
-                                                                {
-                                                                    try
-                                                                    {
-                                                                        if (userExists(nbr))
-                                                                        {
-                                                                            transferLoadWallet(_senderNbr, nbr, decAmt);
-                                                                            var acctINFO1 = accountInfo(_senderNbr);
-                                                                            var acctINFO2 = accountInfo(nbr);
-                                                                            string txtRefno = InputHelper.GenRefNo;
-                                                                            sendMsg(3, "You have issued P " + decAmt.ToString("#,##0.00") + " (" + (decAmt - (decAmt * percentLoad)).ToString("#,##0.00") + ") iLoad to " + nbr + "." + Environment.NewLine + "New iLoad balance P " + decimal.Parse(acctINFO1[0]).ToString("#,##0.00") + Environment.NewLine + "Ref No. " + txtRefno + Environment.NewLine + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), _senderNbr);
-                                                                            Thread.Sleep(1000);
-                                                                            sendMsg(3, "You have received P " + decAmt.ToString("#,##0.00") + " iLoad from " + _senderNbr + "." + Environment.NewLine + "New iLoad balance P " + decimal.Parse(acctINFO2[0]).ToString("#,##0.00") + Environment.NewLine + "Ref No. " + txtRefno + Environment.NewLine + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), nbr);
-                                                                            insertTLCHistory(_senderNbr, acctINFO1[0], nbr, acctINFO2[0], txtRefno, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), amt);
+                                                    string senderRole = db.QueryDT("SELECT * FROM tbl_users WHERE _PHONE = '" + _senderNbr + "'").ValueString("_ROLE", 0);
+                                                    string receiverRole = db.QueryDT("SELECT * FROM tbl_users WHERE _PHONE = '" + nbr + "'").ValueString("_ROLE", 0);
+
+                                                    bool equalLevel = (senderRole == receiverRole);
+
+                                                    if (nbr !=  _senderNbr){
+                                                        if (!has30minsTLC(_senderNbr, amt, nbr)) {
+                                                            if (userExists(nbr)) {
+                                                                if (hasLoadBalance(_senderNbr, decimal.Parse(amt))) {
+                                                                    if (decAmt > 49) {
+                                                                        try {
+                                                                            if (isLessEqual(_senderNbr, nbr)) {
+                                                                                string txtRefno = InputHelper.GenRefNo;
+                                                                                percentLoad = setPercentToBeDeducted(_senderNbr, nbr);
+                                                                                transferLoadWallet(_senderNbr, nbr, decAmt);
+                                                                                recordIncome(_senderNbr, (decAmt * percentLoad), "TLC", txtRefno, DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"));
+                                                                                var acctINFO1 = accountInfo(_senderNbr);
+                                                                                var acctINFO2 = accountInfo(nbr);
+                                                                                Thread.Sleep(500);
+                                                                                if (equalLevel) {
+                                                                                    sendMsg(3, "You have issued P " + decAmt.ToString("#,##0.00") + "(" + decAmt.ToString("#,##0.00") + ")" + " load to " + nbr + ". " + "New load balance P " + decimal.Parse(acctINFO1[0]).ToString("#,##0.00") + ". " + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), _senderNbr);
+                                                                                }
+                                                                                else {
+                                                                                    sendMsg(3, "You have issued P " + decAmt.ToString("#,##0.00") + " (" + (decAmt - (decAmt * percentLoad)).ToString("#,##0.00") + ") load to " + nbr + ". " + "New load balance P " + decimal.Parse(acctINFO1[0]).ToString("#,##0.00") + ". " + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), _senderNbr);
+                                                                                }
+                                                                                Thread.Sleep(500);
+                                                                                sendMsg(3, "Ref No. " + txtRefno + ". " + Environment.NewLine + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), _senderNbr);
+                                                                                Thread.Sleep(500);
+                                                                                sendMsg(3, "You have received P " + decAmt.ToString("#,##0.00") + " load from " + _senderNbr + "." + Environment.NewLine + "New load balance P " + decimal.Parse(acctINFO2[0]).ToString("#,##0.00") + " " + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), nbr);
+                                                                                Thread.Sleep(500);
+                                                                                sendMsg(3, "Ref No. " + txtRefno + ". " + Environment.NewLine + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), nbr);
+                                                                                insertTLCHistory(_senderNbr, acctINFO1[0], nbr, acctINFO2[0], txtRefno, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), amt);
+                                                                            }
+                                                                            else
+                                                                                sendMsg(3, "You are not allowed to transfer to this account.", _senderNbr);
                                                                         }
-                                                                        else
-                                                                            sendMsg(3, "Receiver is not registered in the system.", _senderNbr);
+                                                                        catch (Exception e) {
+                                                                            sendMsg(3, "System Error. Please try again later.", _senderNbr);
+                                                                        }
                                                                     }
-                                                                    catch
-                                                                    {
-                                                                        sendMsg(3, "Invalid command. Please make sure your format is correct and your message does not exceed 160 characters.", _senderNbr);
-                                                                    }
+                                                                    else
+                                                                        sendMsg(3, "The minimum amount that can be transferred is P 50.00", _senderNbr);
                                                                 }
                                                                 else
-                                                                    sendMsg(3, "The minimum amount that can be transferred is P 100.00", _senderNbr);
+                                                                    sendMsg(3, "The transaction could not be completed, you have insufficient balance.", _senderNbr);
                                                             }
                                                             else
-                                                                sendMsg(3, "The transaction could not be completed, you have insufficient balance.", _senderNbr);
+                                                                sendMsg(3, "Receiver is not registered in the system.", _senderNbr);
                                                         }
                                                         else
-                                                            sendMsg(3, "You are not allowed to transfer to this account.", _senderNbr);
+                                                            sendMsg(3, "The transaction can only be repeated after 30 minutes.", _senderNbr);
                                                     }
-                                                    else
-                                                        sendMsg(3, "The transaction can only be repeated after 30 minutes.", _senderNbr);
+                                                    else{
+                                                        sendMsg(3, "You can not send load credits to your own number.", _senderNbr);
+                                                    }
+                                                    
                                                 }
                                                 #endregion
                                                 #region FORWARD PINS
                                                 else if (_msgType.EqualsIgnoreCase("TTU"))
                                                 {
                                                     var position = db.QueryDT("SELECT _ROLE FROM tbl_users WHERE _PHONE = '" + _senderNbr + "'").ValueString("_ROLE", 0);
-                                                    string nbr = _message.Split(' ')[1].Trim();
-                                                    string amt = _message.Split(' ')[2].Trim();
+                                                    string nbr = _message.Trim().Split(' ')[1].Trim();
+                                                    string amt = _message.Trim().Split(' ')[2].Trim();
 
-                                                    if (position != "RETAILER")
-                                                    {
-                                                        if (!has30minsPINS(_senderNbr))
-                                                        {
-                                                            if (isLessEqual(_senderNbr, nbr))
-                                                            {
-                                                                if (hasPINS(_senderNbr, int.Parse(amt)))
-                                                                {
-                                                                    try
-                                                                    {
-                                                                        if (userExists(nbr))
-                                                                        {
-                                                                            transferPins(_senderNbr, nbr, int.Parse(amt));
-                                                                            var acctINFO1 = accountInfo(_senderNbr);
-                                                                            var acctINFO2 = accountInfo(nbr);
-                                                                            string txtRefno = InputHelper.GenRefNo;
-                                                                            sendMsg(3, "You have received " + amt + " PINS from " + _senderNbr + "." + Environment.NewLine + "Ref No. " + txtRefno + Environment.NewLine + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), nbr);
-                                                                            sendMsg(3, "New iLoad balance P " + int.Parse(acctINFO2[1]).ToString("#,##0") + Environment.NewLine + "Ref No. " + txtRefno + Environment.NewLine + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), nbr);
-                                                                            sendMsg(3, "You have issued " + amt + " PINS to " + nbr + "." + Environment.NewLine + "New PIN balance " + int.Parse(acctINFO1[1]).ToString("#,##0") + Environment.NewLine + "Ref No. " + txtRefno + Environment.NewLine + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), _senderNbr);
-                                                                            var name = db.QueryDT("SELECT * FROM tbl_users WHERE _PHONE = '" + nbr + "'").ValueString("_FULLNAME", 0);
-                                                                            insertPINHistory(_senderNbr, amt, nbr, name, acctINFO2[1], txtRefno, DateTime.Now.ToString("yyyy-MM-dd HH:mm:tt"));
+                                                    if (nbr != _senderNbr) {
+                                                        if (position != "RETAILER") {
+                                                            if (userExists(nbr)) {
+                                                                if (isLessEqual(_senderNbr, nbr)) {
+                                                                    if (hasPINS(_senderNbr, int.Parse(amt))) {
+                                                                        try {
+                                                                            if (!has30minsPINS(_senderNbr, nbr, amt)) {
+                                                                                transferPins(_senderNbr, nbr, int.Parse(amt));
+                                                                                var acctINFO1 = accountInfo(_senderNbr);
+                                                                                var acctINFO2 = accountInfo(nbr);
+                                                                                string txtRefno = InputHelper.GenRefNo;
+                                                                                sendMsg(3, "You have received " + amt + " PINS from " + _senderNbr + "." + Environment.NewLine + "Available TU Pins: " + int.Parse(acctINFO2[1]).ToString("#,##0") + Environment.NewLine + "Ref No. " + txtRefno + Environment.NewLine + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), nbr);
+                                                                                Thread.Sleep(500);
+                                                                                sendMsg(3, "You have issued " + amt + " PINS to " + nbr + "." + Environment.NewLine + "New PIN balance " + int.Parse(acctINFO1[1]).ToString("#,##0") + Environment.NewLine + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), _senderNbr);
+                                                                                Thread.Sleep(500);
+                                                                                sendMsg(3, "Ref No. " + txtRefno + Environment.NewLine + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), _senderNbr);
+                                                                                var name = db.QueryDT("SELECT * FROM tbl_users WHERE _PHONE = '" + nbr + "'").ValueString("_FULLNAME", 0);
+                                                                                insertPINHistory(_senderNbr, amt, nbr, name, acctINFO2[1], txtRefno, DateTime.Now.ToString("yyyy-MM-dd HH:mm:tt"));
+                                                                            }
+                                                                            else
+                                                                                sendMsg(3, "The transaction can only be repeated after 30 minutes.", _senderNbr);
                                                                         }
-                                                                        else
-                                                                            sendMsg(3, "Receiver is not registered in the system.", _senderNbr);
+                                                                        catch {
+                                                                            sendMsg(3, "Invalid command. Please make sure your format is correct and your message does not exceed 160 characters.", _senderNbr);
+                                                                        }
                                                                     }
-                                                                    catch
-                                                                    {
-                                                                        sendMsg(3, "Invalid command. Please make sure your format is correct and your message does not exceed 160 characters.", _senderNbr);
-                                                                    }
+                                                                    else
+                                                                        sendMsg(3, "The transaction could not be completed, you have insufficient balance.", _senderNbr);
                                                                 }
                                                                 else
-                                                                    sendMsg(3, "The transaction could not be completed, you have insufficient balance.", _senderNbr);
+                                                                    sendMsg(3, "You are not allowed to transfer to higher account.", _senderNbr);
                                                             }
                                                             else
-                                                                sendMsg(3, "You are not allowed to transfer to this account.", _senderNbr);
+                                                                sendMsg(3, "Receiver is not registered in the system.", _senderNbr);
                                                         }
                                                         else
-                                                            sendMsg(3, "The transaction can only be repeated after 30 minutes.", _senderNbr);
+                                                            sendMsg(3, "You are not allowed to transfer to higher account.", _senderNbr);
                                                     }
-                                                    else
-                                                        sendMsg(3, "Your account is too low to transfer Pins.", _senderNbr);
+                                                    else {
+                                                        sendMsg(3, "You are not allowed to transfer pins to your own account.", _senderNbr);
+                                                    }
+
                                                 }
                                                 #endregion
 
                                                 #region ADDITIONAL ACCOUNT
                                                 else if (_msgType.EqualsIgnoreCase("ADD")) {
-
-                                                    string number = _message.Split(' ')[1].Trim().Split('/')[1];
                                                     string code = _message.Split(' ')[1].Trim().Split('/')[0];
                                                     string sender = _senderNbr;
 
                                                     string status = db.QueryDT("SELECT * FROM tbl_users WHERE _PHONE = '" + sender + "'").ValueString("_ROLE", 0).Split(' ')[0].Trim();
-                                                    string username = db.QueryDT("SELECT * FROM tbl_users WHERE _PHONE = '" + sender + "'").ValueString("_USERNAME", 0);
-                                                    string fullName = db.QueryDT("SELECT * FROM tbl_users WHERE _PHONE = '" + sender + "'").ValueString("_FULLNAME", 0);
-                                                    string password = db.QueryDT("SELECT * FROM tbl_users WHERE _PHONE = '" + sender + "'").ValueString("_PASSWORD", 0);
-                                                    string bdate = db.QueryDT("SELECT * FROM tbl_users WHERE _PHONE = '" + sender + "'").ValueString("_BDATE", 0);
-                                                    string address = db.QueryDT("SELECT * FROM tbl_users WHERE _PHONE = '" + sender + "'").ValueString("_ADDRESS", 0);
+                                                    string oldPin = db.QueryDT("SELECT * FROM tbl_account WHERE _PHONE = '" + sender + "'").ValueString("_PINS", 0);
 
                                                     bool elligibleCode = db.QueryDT("SELECT * FROM tbl_act_code WHERE _CODE = '" + code + "' AND _USED = 'NO'").RowCount() == 1;
-                                                    bool elligibleType = db.QueryDT("SELECT * FROM tbl_act_code WHERE _TYPE = '" + status + "'").RowCount() == 1;
-                                                    bool elligibleNumber = !userExists(number);
+                                                    bool elligibleType = db.QueryDT("SELECT * FROM tbl_act_code WHERE _TYPE = '" + status + "' AND _CODE = '" + code + "'").RowCount() == 1;
+                                                    bool elligibleNumber = userExists(sender);
 
                                                     int pins = 0;
+                                                    
+                                                    if (userExists(sender)) {
+                                                        if (elligibleCode && elligibleType) {
 
-                                                    if (elligibleNumber) {
-                                                        if (elligibleCode) {
-                                                            if (elligibleType) {
-                                                                try {
-                                                                    db.Query("INSERT INTO tbl_users (_USERNAME, _PASSWORD, _PHONE, _FULLNAME, _BDATE, _ADDRESS, _ROLE) VALUES ('"
-                                                                    + username + "', '" + password + "', '" + number + "', '" + fullName + "', '" + bdate + "', '" + address + "', '" + status + "')");
+                                                            try {
+                                                                switch (status) {
+                                                                    case ("RETAILER"):
+                                                                        pins = 0;
+                                                                        break;
 
-                                                                    switch (status) {
-                                                                        case ("RETAILER"):
-                                                                            pins = 0;
-                                                                            break;
+                                                                    case ("DISTRIBUTOR"):
+                                                                        pins = 50;
+                                                                        break;
 
-                                                                        case ("DISTRIBUTOR"):
-                                                                            pins = 50;
-                                                                            break;
+                                                                    case ("DEALER"):
+                                                                        pins = 70;
+                                                                        break;
 
-                                                                        case ("DEALER"):
-                                                                            pins = 100;
-                                                                            break;
+                                                                    case ("MOBILE"):
+                                                                        pins = 1500;
+                                                                        break;
 
-                                                                        case ("MOBILE"):
-                                                                            pins = 1500;
-                                                                            break;
+                                                                    case ("CITY"):
+                                                                        pins = 7000;
+                                                                        break;
 
-                                                                        case ("CITY"):
-                                                                            pins = 7000;
-                                                                            break;
-
-                                                                        case ("PROVINCIAL"):
-                                                                            pins = 20000;
-                                                                            break;
-                                                                    }
-                                                                    db.Query("INSERT INTO tbl_account (_PHONE, _BALANCE, _PINS) VALUES ('" + number + "', 0, '" + pins + "')");
-                                                                    db.Query("UPDATE tbl_act_code SET _USED = 'YES' WHERE _CODE = '" + code + "'");
-                                                                    sendMsg(3, "Congratulations! You have added 1 " + status.ToLower() + " to your account. You now have additional " + pins + " TU pins.", number);
-                                                                    sendMsg(3, "Congratulations! " + number + " has added additional 1 " + status, sender);
+                                                                    case ("PROVINCIAL"):
+                                                                        pins = 20000;
+                                                                        break;
                                                                 }
-                                                                catch (Exception e) {
-                                                                    sendMsg(3, "There was an error adding another account. Please try again later.", sender);
+                                                                db.Query("UPDATE tbl_account SET _PINS = '" + (int.Parse(oldPin) + pins) + "' WHERE _PHONE = '" + sender + "'");
+                                                                db.Query("UPDATE tbl_act_code SET _USED = 'YES' WHERE _CODE = '" + code + "'");
+
+                                                                if ((status == "MOBILE") || (status == "CITY") || (status == "PROVINCIAL")) {
+                                                                    sendMsg(3, "Congratulations! " + sender + " has added additional 1 " + status.ToLower() + " stockiest. You now have additional + " + pins.ToString() + " TU pins.", sender);
+                                                                }
+                                                                else {
+                                                                    sendMsg(3, "Congratulations! " + sender + " has added additional 1 " + status.ToLower() + ". You now have additional + " + pins.ToString() + " TU pins.", sender);
                                                                 }
                                                             }
-                                                            else {
-                                                                //cant use this code
-                                                                sendMsg(3, "Additional Account Error: You are not elligible to use this code.", sender);
+                                                            catch {
+                                                                sendMsg(3, "System Error. Please try again later.", sender);
                                                             }
                                                         }
                                                         else {
-                                                            //CODE DOESNT EXIST
-                                                            sendMsg(3, "Additional Account Error: The code you sent is already used or doesn't exist.", sender);
+                                                            sendMsg(3, "Additional Account Error. Invalid product code.", sender);
                                                         }
-
                                                     }
                                                     else {
-                                                        // USER ALREADY EXISTS
-                                                        sendMsg(3, "Additional Account Error: The number you are activating already exists.", sender);
+                                                        sendMsg(3, "Additional Account Error. Number not registered in the system", sender);
                                                     }
                                                 } 
                                                 #endregion
@@ -900,72 +1063,83 @@ namespace SMS_Sender
 
                                                     bool elligibleLevel = upgradeToLevel > upgradeFromLevel;
                                                     bool elligibleCode = db.QueryDT("SELECT * FROM tbl_act_code WHERE _CODE = '" + code + "' AND _USED = 'NO'").RowCount() == 1;
-                                                    bool elligibleType = db.QueryDT("SELECT * FROM tbl_act_code WHERE _TYPE = '" + upgradeTo + "'").RowCount() == 1;
+                                                    bool elligibleType = db.QueryDT("SELECT * FROM tbl_act_code WHERE _TYPE = '" + upgradeTo + "' AND _CODE = '" + code + "'").RowCount() == 1;
 
-                                                    if (elligibleCode) {
-                                                        if (elligibleLevel) {
-                                                            if (elligibleType) {
 
-                                                                int additionalPin = 0;
+                                                    if (userExists(number)) {
+                                                        if (elligibleCode) {
+                                                            if (elligibleLevel) {
+                                                                if (elligibleType) {
 
-                                                                try {
-                                                                    switch (upgradeTo) {
-                                                                        case ("DISTRIBUTOR"):
-                                                                            additionalPin = 50;
-                                                                            pins = pins + additionalPin;
-                                                                            break;
+                                                                    int additionalPin = 0;
 
-                                                                        case ("DEALER"):
-                                                                            additionalPin = 100;
-                                                                            pins = pins + additionalPin;
-                                                                            break;
+                                                                    try {
+                                                                        switch (upgradeTo) {
+                                                                            case ("DISTRIBUTOR"):
+                                                                                additionalPin = 50;
+                                                                                pins = pins + additionalPin;
+                                                                                break;
 
-                                                                        case ("MOBILE"):
-                                                                            additionalPin = 1500;
-                                                                            pins = pins + additionalPin;
-                                                                            break;
+                                                                            case ("DEALER"):
+                                                                                additionalPin = 70;
+                                                                                pins = pins + additionalPin;
+                                                                                break;
 
-                                                                        case ("CITY"):
-                                                                            additionalPin = 7000;
-                                                                            pins = pins + additionalPin;
-                                                                            break;
+                                                                            case ("MOBILE"):
+                                                                                additionalPin = 1500;
+                                                                                pins = pins + additionalPin;
+                                                                                break;
 
-                                                                        case ("PROVINCIAL"):
-                                                                            additionalPin = 20000;
-                                                                            pins = pins + additionalPin;
-                                                                            break;
-                                                                    } 
+                                                                            case ("CITY"):
+                                                                                additionalPin = 7000;
+                                                                                pins = pins + additionalPin;
+                                                                                break;
 
-                                                                    db.Query("UPDATE tbl_users SET _ROLE = '" + upgradeTo + "' WHERE _PHONE = '" + number + "'");
-                                                                    db.Query("UPDATE tbl_account SET _PINS = '" + pins.ToString() + "' WHERE _PHONE = '" + number + "'");
-                                                                    db.Query("UPDATE tbl_act_code SET _USED = 'YES' WHERE _CODE = '" + code + "'");
+                                                                            case ("PROVINCIAL"):
+                                                                                additionalPin = 20000;
+                                                                                pins = pins + additionalPin;
+                                                                                break;
+                                                                        }
 
-                                                                    sendMsg(3, "Congratulations! You have upgraded your account to " + upgradeTo + ". You now have " + additionalPin.ToString() + " additional TU pins.", number);
-                                                                    sendMsg(3, "Congratulations! " + number + " has been upgraded to " + upgradeTo + ".", sender);
+                                                                        db.Query("UPDATE tbl_users SET _ROLE = '" + upgradeTo + "' WHERE _PHONE = '" + number + "'");
+                                                                        db.Query("UPDATE tbl_account SET _PINS = '" + pins.ToString() + "' WHERE _PHONE = '" + number + "'");
+                                                                        db.Query("UPDATE tbl_act_code SET _USED = 'YES' WHERE _CODE = '" + code + "'");
+
+                                                                        if ((upgradeTo == "MOBILE") || (upgradeTo == "CITY") || (upgradeTo == "PROVINCIAL")) {
+                                                                            sendMsg(3, "Congratulations! You have upgraded your account to " + upgradeTo + " STOCKIEST. You now have " + additionalPin.ToString() + " additional TU pins.", number);
+                                                                            sendMsg(3, "Congratulations! " + number + " has been upgraded to " + upgradeTo + " STOCKIEST.", sender);
+                                                                        }
+                                                                        else {
+                                                                            sendMsg(3, "Congratulations! You have upgraded your account to " + upgradeTo + ". You now have " + additionalPin.ToString() + " additional TU pins.", number);
+                                                                            sendMsg(3, "Congratulations! " + number + " has been upgraded to " + upgradeTo + ".", sender);
+                                                                        }
+                                                                    }
+                                                                    catch (Exception e) {
+                                                                        sendMsg(3, "Upgrade Failed. An error has occurred, please try again later.", sender);
+                                                                    }
                                                                 }
-                                                                catch (Exception e) {
-                                                                    sendMsg(3, "Upgrade Failed. An error has occurred, please try again later.", sender);
+                                                                else {
+                                                                    //can't use code
+                                                                    sendMsg(3, "Upgrade Failed. You are inelligible to use this code", sender);
                                                                 }
-                                                                
                                                             }
                                                             else {
-                                                                //can't use code
-                                                                sendMsg(3, "Upgrade Failed. You are inelligible to use this code", sender);
+                                                                //code used or doesnt exist
+                                                                sendMsg(3, "Upgrade Failed. You can not downgrade or upgrade to your current level.", sender);
                                                             }
                                                         }
                                                         else {
-                                                            //code used or doesnt exist
-                                                            sendMsg(3, "Upgrade Failed. You can not downgrade.", sender);
+                                                            //you can not downgrade
+                                                            sendMsg(3, "Upgrade Failed. The code you entered is either used or didn't exist.", sender);
                                                         }
                                                     }
                                                     else {
-                                                        //you can not downgrade
-                                                        sendMsg(3, "Upgrade Failed. The code you entered is either used or didn't exist.", sender);
+                                                        sendMsg(3, "Upgrade Failed. Number not registered in the system.", sender);
                                                     }
+                                                    
                                                 }
 
                                                 #region RETAILER REGISTRATION
-
                                                 else if (_msgType.EqualsIgnoreCase("RET"))
                                                 {
                                                     if (canRegister(_senderNbr, "RET"))
@@ -977,10 +1151,40 @@ namespace SMS_Sender
                                                                 string nbr = _message.Split('/')[0].Split(' ')[1].Trim();
                                                                 if (!userExists(nbr))
                                                                 {
-                                                                    regUser(_message, _senderNbr, _carrier, _dateTime, "RETAILER", "0", "0");
+                                                                    string password = _message.Split('/')[1];
+
+                                                                    if(password.ToString().Length == 5)
+                                                                    {
+                                                                        string username = _message.Split('/')[3];
+
+                                                                        if((username.Length <= 8) && (Regex.IsMatch(username, @"^[a-zA-Z0-9]+$")))
+                                                                        {
+                                                                            string month = _message.Split('/')[4].Split('-')[0];
+                                                                            string day = _message.Split('/')[4].Split('-')[1];
+                                                                            string year = _message.Split('/')[4].Split('-')[2];
+
+                                                                            bool validDate = (((int.Parse(month) <= 12) && (int.Parse(month) > 0)) && (year.Length == 4)) && ((int.Parse(day) > 0) && (int.Parse(day) <= 31));
+                                                                            
+                                                                            if (validDate) {
+                                                                                regUser(_message, _senderNbr, _carrier, _dateTime, "RETAILER", "0", "0");
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                sendMsg(3, "Activation Failed. Birthday must be mm-dd-yyyy.", _senderNbr);
+                                                                            }
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            sendMsg(3, "Activation Failed. Username must be 8 characters only. Letters and Numbers only.", _senderNbr);
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        sendMsg(3, "Activation Failed. Password must be a 5 digit number.", _senderNbr);
+                                                                    }
                                                                 }
                                                                 else
-                                                                    sendMsg(3, "Activation Failed. This user already exists.", _senderNbr);
+                                                                    sendMsg(3, "Activation Failed. Number already registered.", _senderNbr);
                                                             }
                                                             catch
                                                             {
@@ -1002,10 +1206,38 @@ namespace SMS_Sender
                                                             try
                                                             {
                                                                 string nbr = _message.Split('/')[0].Split(' ')[1].Trim();
-                                                                if (!userExists(nbr))
-                                                                    regUser(_message, _senderNbr, _carrier, _dateTime, "DISTRIBUTOR", "0", "50");
+                                                                if (!userExists(nbr)) 
+                                                                {
+                                                                    string password = _message.Split('/')[2];
+
+                                                                    if (password.ToString().Length == 5) {
+                                                                        string username = _message.Split('/')[4];
+
+                                                                        if ((username.Length <= 8) && (Regex.IsMatch(username, @"^[a-zA-Z0-9]+$"))) {
+                                                                            string month = _message.Split('/')[5].Split('-')[0];
+                                                                            string day = _message.Split('/')[5].Split('-')[1];
+                                                                            string year = _message.Split('/')[5].Split('-')[2];
+
+                                                                            bool validDate = (((int.Parse(month) <= 12) && (int.Parse(month) > 0)) && (year.Length == 4)) && ((int.Parse(day) > 0) && (int.Parse(day) <= 31));
+
+                                                                            if (validDate) {
+                                                                                
+                                                                                regUser(_message, _senderNbr, _carrier, _dateTime, "DISTRIBUTOR", "0", "50");
+                                                                            }
+                                                                            else {
+                                                                                sendMsg(3, "Activation Failed. Birthday must be mm-dd-yyyy.", _senderNbr);
+                                                                            }
+                                                                        }
+                                                                        else {
+                                                                            sendMsg(3, "Activation Failed. Username must be 8 characters only. Letters and Numbers only.", _senderNbr);
+                                                                        }
+                                                                    }
+                                                                    else {
+                                                                        sendMsg(3, "Activation Failed. Password must be a 5 digit number.", _senderNbr);
+                                                                    }
+                                                                }
                                                                 else
-                                                                    sendMsg(3, "Activation Failed. This user already exists.", _senderNbr);
+                                                                    sendMsg(3, "Activation Failed.  Number already registered.", _senderNbr);
                                                             }
                                                             catch
                                                             {
@@ -1030,9 +1262,37 @@ namespace SMS_Sender
                                                             {
                                                                 string nbr = _message.Split('/')[0].Split(' ')[1].Trim();
                                                                 if (!userExists(nbr))
-                                                                    regUser(_message, _senderNbr, _carrier, _dateTime, "DEALER", "0", "70");
+                                                                {
+                                                                    string password = _message.Split('/')[2];
+
+                                                                    if (password.ToString().Length == 5) {
+                                                                        string username = _message.Split('/')[4];
+
+                                                                        if ((username.Length <= 8) && (Regex.IsMatch(username, @"^[a-zA-Z0-9]+$"))) {
+                                                                            string month = _message.Split('/')[5].Split('-')[0];
+                                                                            string day = _message.Split('/')[5].Split('-')[1];
+                                                                            string year = _message.Split('/')[5].Split('-')[2];
+
+                                                                            bool validDate = (((int.Parse(month) <= 12) && (int.Parse(month) > 0)) && (year.Length == 4)) && ((int.Parse(day) > 0) && (int.Parse(day) <= 31));
+
+                                                                            if (validDate) {
+                                                                                regUser(_message, _senderNbr, _carrier, _dateTime, "DEALER", "0", "70");
+                                                                            }
+                                                                            else {
+                                                                                sendMsg(3, "Activation Failed. Birthday must be mm-dd-yyyy.", _senderNbr);
+                                                                            }
+                                                                        }
+                                                                        else {
+                                                                            sendMsg(3, "Activation Failed. Username must be 8 characters only. Letters and Numbers only.", _senderNbr);
+                                                                        }
+                                                                    }
+                                                                    else {
+                                                                        sendMsg(3, "Activation Failed. Password must be a 5 digit number.", _senderNbr);
+                                                                    }
+                                                                }
+                                                                    
                                                                 else
-                                                                    sendMsg(3, "Activation Failed. This user already exists.", _senderNbr);
+                                                                    sendMsg(3, "Activation Failed. Number already registered.", _senderNbr);
                                                             }
                                                             catch
                                                             {
@@ -1057,9 +1317,36 @@ namespace SMS_Sender
                                                             {
                                                                 string nbr = _message.Split('/')[0].Split(' ')[1].Trim();
                                                                 if (!userExists(nbr))
-                                                                    regUser(_message, _senderNbr, _carrier, _dateTime, "MOBILE STOCKIEST", "0", "1500");
+                                                                {
+                                                                    string password = _message.Split('/')[2];
+
+                                                                    if (password.ToString().Length == 5) {
+                                                                        string username = _message.Split('/')[4];
+
+                                                                        if ((username.Length <= 8) && (Regex.IsMatch(username, @"^[a-zA-Z0-9]+$"))) {
+                                                                            string month = _message.Split('/')[5].Split('-')[0];
+                                                                            string day = _message.Split('/')[5].Split('-')[1];
+                                                                            string year = _message.Split('/')[5].Split('-')[2];
+
+                                                                            bool validDate = (((int.Parse(month) <= 12) && (int.Parse(month) > 0)) && (year.Length == 4)) && ((int.Parse(day) > 0) && (int.Parse(day) <= 31));
+
+                                                                            if (validDate) {
+                                                                                regUser(_message, _senderNbr, _carrier, _dateTime, "MOBILE", "0", "1500");
+                                                                            }
+                                                                            else {
+                                                                                sendMsg(3, "Activation Failed. Birthday must be mm-dd-yyyy.", _senderNbr);
+                                                                            }
+                                                                        }
+                                                                        else {
+                                                                            sendMsg(3, "Activation Failed. Username must be 8 characters only. Letters and Numbers only.", _senderNbr);
+                                                                        }
+                                                                    }
+                                                                    else {
+                                                                        sendMsg(3, "Activation Failed. Password must be a 5 digit number.", _senderNbr);
+                                                                    }
+                                                                }
                                                                 else
-                                                                    sendMsg(3, "Activation Failed. This user already exists.", _senderNbr);
+                                                                    sendMsg(3, "Activation Failed. Number already registered.", _senderNbr);
                                                             }
                                                             catch
                                                             {
@@ -1084,9 +1371,36 @@ namespace SMS_Sender
                                                             {
                                                                 string nbr = _message.Split('/')[0].Split(' ')[1].Trim();
                                                                 if (!userExists(nbr))
-                                                                    regUser(_message, _senderNbr, _carrier, _dateTime, "CITY STOCKIEST", "0", "7000");
+                                                                {
+                                                                    string password = _message.Split('/')[2];
+
+                                                                    if (password.ToString().Length == 5) {
+                                                                        string username = _message.Split('/')[4];
+
+                                                                        if ((username.Length <= 8) && (Regex.IsMatch(username, @"^[a-zA-Z0-9]+$"))) {
+                                                                            string month = _message.Split('/')[5].Split('-')[0];
+                                                                            string day = _message.Split('/')[5].Split('-')[1];
+                                                                            string year = _message.Split('/')[5].Split('-')[2];
+
+                                                                            bool validDate = (((int.Parse(month) <= 12) && (int.Parse(month) > 0)) && (year.Length == 4)) && ((int.Parse(day) > 0) && (int.Parse(day) <= 31));
+
+                                                                            if (validDate) {
+                                                                                regUser(_message, _senderNbr, _carrier, _dateTime, "CITY", "0", "7000");
+                                                                            }
+                                                                            else {
+                                                                                sendMsg(3, "Activation Failed. Birthday must be mm-dd-yyyy.", _senderNbr);
+                                                                            }
+                                                                        }
+                                                                        else {
+                                                                            sendMsg(3, "Activation Failed. Username must be 8 characters only. Letters and Numbers only.", _senderNbr);
+                                                                        }
+                                                                    }
+                                                                    else {
+                                                                        sendMsg(3, "Activation Failed. Password must be a 5 digit number.", _senderNbr);
+                                                                    }
+                                                                }
                                                                 else
-                                                                    sendMsg(3, "Activation Failed. This user already exists.", _senderNbr);
+                                                                    sendMsg(3, "Activation Failed. Number already registered.", _senderNbr);
                                                             }
                                                             catch
                                                             {
@@ -1111,9 +1425,36 @@ namespace SMS_Sender
                                                             {
                                                                 string nbr = _message.Split('/')[0].Split(' ')[1].Trim();
                                                                 if (!userExists(nbr))
-                                                                    regUser(_message, _senderNbr, _carrier, _dateTime, "PROVINCIAL STOCKIEST", "0", "20000");
+                                                                {
+                                                                    string password = _message.Split('/')[2];
+
+                                                                    if (password.ToString().Length == 5) {
+                                                                        string username = _message.Split('/')[4];
+
+                                                                        if ((username.Length <= 8) && (Regex.IsMatch(username, @"^[a-zA-Z0-9]+$"))) {
+                                                                            string month = _message.Split('/')[5].Split('-')[0];
+                                                                            string day = _message.Split('/')[5].Split('-')[1];
+                                                                            string year = _message.Split('/')[5].Split('-')[2];
+
+                                                                            bool validDate = (((int.Parse(month) <= 12) && (int.Parse(month) > 0)) && (year.Length == 4)) && ((int.Parse(day) > 0) && (int.Parse(day) <= 31));
+
+                                                                            if (validDate) {
+                                                                                regUser(_message, _senderNbr, _carrier, _dateTime, "PROVINCIAL", "0", "20000");
+                                                                            }
+                                                                            else {
+                                                                                sendMsg(3, "Activation Failed. Birthday must be mm-dd-yyyy.", _senderNbr);
+                                                                            }
+                                                                        }
+                                                                        else {
+                                                                            sendMsg(3, "Activation Failed. Username must be 8 characters only. Letters and Numbers only.", _senderNbr);
+                                                                        }
+                                                                    }
+                                                                    else {
+                                                                        sendMsg(3, "Activation Failed. Password must be a 5 digit number.", _senderNbr);
+                                                                    }
+                                                                }
                                                                 else
-                                                                    sendMsg(3, "Activation Failed. This user already exists.", _senderNbr);
+                                                                    sendMsg(3, "Activation Failed. Number already registered.", _senderNbr);
                                                             }
                                                             catch
                                                             {
@@ -1132,9 +1473,13 @@ namespace SMS_Sender
                                                 {
                                                     try
                                                     {
-                                                        string _concern = _message.Split(' ')[1].Trim();
-                                                        insertHelp(_senderNbr, _concern, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), "PENDING");
+                                                        string referenceNo = _message.Split(' ')[1].Trim().Split('/')[0].Trim();
+                                                        string dateOfIncident = _message.Split(' ')[1].Trim().Split('/')[1].Trim();
+                                                        string code = _message.Split(' ')[1].Trim().Split('/')[2].Trim();
+
+                                                        insertHelp(_senderNbr, referenceNo, dateOfIncident, code, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), "PENDING");
                                                         loadHelpDataGrid();
+                                                        sendMsg(3, "Your concern/inquiry has been received. You will be contacted by one of our representatives.", _senderNbr);
                                                     }
                                                     catch
                                                     {
@@ -1156,13 +1501,13 @@ namespace SMS_Sender
                                                             {
                                                                 if (passwordCorrect(tmp[0], tmp[1]))
                                                                 {
-                                                                    if (tmp[2].Length > 4)
+                                                                    if ((tmp[2].Length == 5) && (Regex.IsMatch(tmp[2], @"^[0-9]*$")))
                                                                     {
                                                                         db.Query("UPDATE tbl_users SET _PASSWORD = '" + tmp[2] + "' WHERE _USERNAME = '" + tmp[0] + "' AND _PASSWORD = '" + tmp[1] + "'");
                                                                         sendMsg(3, "Change password successfull. Never share your username and password to anyone.", _senderNbr);
                                                                     }
                                                                     else
-                                                                        sendMsg(3, "New password must be at least 5 characters long.", _senderNbr);
+                                                                        sendMsg(3, "New password must be exactly 5 numerical digits.", _senderNbr);
                                                                 }
                                                                 else
                                                                     sendMsg(3, "Invalid old password.", _senderNbr);
@@ -1171,7 +1516,7 @@ namespace SMS_Sender
                                                                 sendMsg(3, "Invalid Username. Please make sure you entered the correct username.", _senderNbr);
                                                         }
                                                         else
-                                                            sendMsg(3, "Changing password can only be done using the registered number.", _senderNbr);
+                                                            sendMsg(3, "Invalid username or changing password can only be done using the registered number.", _senderNbr);
                                                     }
                                                     catch
                                                     {
@@ -1182,9 +1527,8 @@ namespace SMS_Sender
                                                 else
                                                     sendMsg(3, "Invalid command. Please make sure your format is correct and your message does not exceed 160 characters.", _senderNbr);
                                             }
-                                            catch (Exception ex)
+                                            catch
                                             {
-                                                MessageBox.Show(ex.Message);
                                                 sendMsg(3, "Invalid command. Please make sure your format is correct and your message does not exceed 160 characters.", _senderNbr);
                                             }
                                         }
@@ -1219,6 +1563,7 @@ namespace SMS_Sender
                                                                 string _loadCarrier = identifyCarrier(_msgLoad[0]);
                                                                 bool loadOK = false;
                                                                 string loadAMT = "";
+                                                                string accountNo = db.QueryDT("SELECT * FROM tbl_users WHERE _USERNAME = '" + _user + "'").ValueString("_PHONE", 0);
 
                                                                 //CHECK IF THERE'S SAME MESSAGE 30 MINS AGO
                                                                 if (!has30minsText(_message.Trim(), _senderNbr))
@@ -1240,7 +1585,7 @@ namespace SMS_Sender
                                                                         if (dr[2].ToString() == _msgLoad[1].Trim())
                                                                         {
                                                                             loadAMT = dr[3].ToString();
-                                                                            if (hasLoadBalance(_senderNbr, decimal.Parse(loadAMT)))
+                                                                            if (hasLoadBalance(accountNo, decimal.Parse(loadAMT)))
                                                                             {
                                                                                 //INSERT MESSAGE AS PENDING FIRST
                                                                                 insertPending(_senderNbr,
@@ -1272,7 +1617,7 @@ namespace SMS_Sender
                                                                                                     break;
                                                                                                 }
                                                                                             }
-                                                                                            catch { }
+                                                                                            catch{ }
                                                                                         }
                                                                                     }
                                                                                     else
@@ -1288,7 +1633,12 @@ namespace SMS_Sender
                                                                                     if (smartActive)
                                                                                     {
                                                                                         loadOK = true;
-                                                                                        sendMsg(6, dr[2].ToString() + " " + _msgLoad[0], "343");
+                                                                                        if (dr[2].ToString().Contains('P')) {
+                                                                                            sendMsg(6, "Load " + dr[2].ToString().Split('P')[1].Trim() + " " + _msgLoad[0].Trim(), "343");
+                                                                                        }
+                                                                                        else {
+                                                                                            sendMsg(6, "Load " + dr[2].ToString() + " " + _msgLoad[0].Trim(), "343");
+                                                                                        }
                                                                                         break;
                                                                                     }
                                                                                     else
@@ -1304,7 +1654,12 @@ namespace SMS_Sender
                                                                                     if (smartActive)
                                                                                     {
                                                                                         loadOK = true;
-                                                                                        sendMsg(6, dr[2].ToString() + " " + _msgLoad[0], "4540");
+                                                                                        if (dr[2].ToString().Contains('P')) {
+                                                                                            sendMsg(6, "Load " + dr[2].ToString().Split('P')[1].Trim() + " " + _msgLoad[0], "4540");
+                                                                                        }
+                                                                                        else {
+                                                                                            sendMsg(6, "Load " + dr[2].ToString() + " " + _msgLoad[0], "4540");
+                                                                                        }
                                                                                         break;
                                                                                     }
                                                                                     else
@@ -1325,19 +1680,26 @@ namespace SMS_Sender
 
                                                                     if (loadOK)
                                                                     {
-                                                                        deductLoad(_senderNbr, loadAMT);
-                                                                        var acctINFO = accountInfo(_senderNbr);
-                                                                        Thread.Sleep(1000);
-                                                                        sendMsg(3, "Load Success!" + Environment.NewLine +
-                                                                        "Cust #: " + _msgLoad[0] + Environment.NewLine +
-                                                                        "Curr bal: " + acctINFO[0].toFinancial() + Environment.NewLine +
-                                                                        "Ref #: " + refno + Environment.NewLine + Environment.NewLine +
-                                                                            DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), _senderNbr);
+                                                                        string accountNumber = db.QueryDT("SELECT * FROM tbl_users WHERE _USERNAME = '" + _messageSplit[2] + "'").ValueString("_PHONE", 0);
+                                                                        deductLoad(accountNumber, (int.Parse(loadAMT) - (int.Parse(loadAMT) * percentLoad)).ToString());
+                                                                        recordIncome(accountNumber, (decimal.Parse(loadAMT) * percentLoad), "LOAD", refno, DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"));
+                                                                        var acctINFO = accountInfo(_messageSplit[0]);
+                                                                        Thread.Sleep(500);
+                                                                        sendMsg(3, "Load Success!" + loadAMT + "(" + (int.Parse(loadAMT) - (int.Parse(loadAMT) * percentLoad)).ToString() + ") has been loaded to " + _messageSplit[0] + "." + Environment.NewLine + "Curr bal: " + acctINFO[0].toFinancial() + Environment.NewLine + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), _senderNbr);
+                                                                        Thread.Sleep(500);
+                                                                        sendMsg(3, "Ref #: " + refno + Environment.NewLine + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), _senderNbr);
+                                                                        Thread.Sleep(500);
+                                                                        sendMsg(3, loadAMT + "(" + (int.Parse(loadAMT) - (int.Parse(loadAMT) * percentLoad)).ToString() + ") has been loaded to " + _messageSplit[0] + "." + Environment.NewLine + "New load Balance: " + acctINFO[0].toFinancial() + " " + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), accountNumber);
+                                                                        Thread.Sleep(500);
+                                                                        sendMsg(3, "Ref #: " + refno + " " + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), accountNumber);
+                                                                    }
+                                                                    else {
+                                                                        sendMsg(3, "Load Failed. Invalid product code, please use the correct product code. (1655)", _senderNbr);
                                                                     }
                                                                 }
                                                                 else
                                                                 {
-                                                                    sendMsg(3, "Duplcate Load Detected! To intentionally repeat load place \"REP<SPACE>\" before the number.", _senderNbr);
+                                                                    sendMsg(3, "Duplicate Load Detected! To intentionally repeat load place \"REP<SPACE>\" before the number.", _senderNbr);
                                                                 }
                                                             }
                                                             #endregion
@@ -1414,7 +1776,12 @@ namespace SMS_Sender
                                                                                 if (smartActive)
                                                                                 {
                                                                                     loadOK = true;
-                                                                                    sendMsg(6, dr[2].ToString() + " " + _msgLoad[1], "343");
+                                                                                    if (dr[2].ToString().Contains('P')) {
+                                                                                        sendMsg(6, "Load " + dr[2].ToString().Split('P')[1].Trim() + " " + _msgLoad[1], "343");
+                                                                                    }
+                                                                                    else {
+                                                                                        sendMsg(6, "Load " + dr[2].ToString() + " " + _msgLoad[1], "343");
+                                                                                    }
                                                                                     break;
                                                                                 }
                                                                                 else
@@ -1430,7 +1797,12 @@ namespace SMS_Sender
                                                                                 if (smartActive)
                                                                                 {
                                                                                     loadOK = true;
-                                                                                    sendMsg(6, dr[2].ToString() + " " + _msgLoad[1], "4540");
+                                                                                    if (dr[2].ToString().Contains('P')) {
+                                                                                        sendMsg(6, "Load " + dr[2].ToString().Split('P')[1].Trim() + " " + _msgLoad[1], "4540");
+                                                                                    }
+                                                                                    else {
+                                                                                        sendMsg(6, "Load " + dr[2].ToString() + " " + _msgLoad[1], "4540");
+                                                                                    }
                                                                                     break;
                                                                                 }
                                                                                 else
@@ -1451,14 +1823,17 @@ namespace SMS_Sender
 
                                                                 if (loadOK)
                                                                 {
+                                                                    
                                                                     deductLoad(_senderNbr, loadAMT);
+                                                                    recordIncome(_senderNbr, (decimal.Parse(loadAMT) * percentLoad), "LOAD", refno, DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"));
                                                                     var acctINFO = accountInfo(_senderNbr);
                                                                     Thread.Sleep(1000);
-                                                                    sendMsg(3, "Load Success!" + Environment.NewLine +
-                                                                    "Cust #: " + _msgLoad[1] + Environment.NewLine +
-                                                                    "Curr bal: " + acctINFO[0].toFinancial() + Environment.NewLine +
-                                                                    "Ref #: " + refno + Environment.NewLine + Environment.NewLine +
-                                                                        DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), _senderNbr);
+                                                                    sendMsg(3, "Load Success! You have issued " + loadAMT + "(" + (decimal.Parse(loadAMT)*(1 - percentLoad)).ToString() + ") Cust #: " + _msgLoad[1] + Environment.NewLine + "Curr bal: " + acctINFO[0].toFinancial() + Environment.NewLine + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), _senderNbr);
+                                                                    Thread.Sleep(500);
+                                                                    sendMsg(3, "Ref #: " + refno + Environment.NewLine + Environment.NewLine + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt"), _senderNbr);
+                                                                }
+                                                                else {
+                                                                    sendMsg(3, "Load Failed. Invalid product code, please use the correct product code. 1783", _senderNbr);
                                                                 }
                                                             }
                                                             #endregion
@@ -1584,32 +1959,39 @@ namespace SMS_Sender
                                 #region AutoLoadMAX response
                                 if (_senderNbr.EqualsIgnoreCase("AutoLoadMAX"))
                                 {
-                                    string _loadSender = "";
-                                    string _loadNbr = "";
-                                    string _trcNo = "";
-                                    string[] _tmpMsg = _message.Split(' ');
+                                    try {
+                                        string _loadSender = "";
+                                        string _loadNbr = "";
+                                        string _trcNo = "";
+                                        string[] _tmpMsg = _message.Split(' ');
 
-                                    _loadNbr = _tmpMsg[8].Replace(".", "").Trim();
-                                    _trcNo = _tmpMsg[15].Split(':')[1].Trim();
+                                        _loadNbr = _tmpMsg[8].Replace(".", "").Trim();
+                                        _trcNo = _tmpMsg[15].Split(':')[1].Trim();
 
-                                    //READ MESSAGE HERE! TO BE CODED
-                                    var _tempPending = db.QueryDT("SELECT * FROM tbl_pending WHERE _PHONE = '" + _loadNbr + "' ORDER BY _DATETIME ASC");
-                                    _loadSender = _tempPending.ValueString("_SENDER", 0);
+                                        //READ MESSAGE HERE! TO BE CODED
+                                        Thread.Sleep(1000);
+                                        var _tempPending = db.QueryDT("SELECT * FROM tbl_pending WHERE _PHONE = '" + _loadNbr + "' ORDER BY _DATETIME DESC");
+                                        Thread.Sleep(1000);
+                                        _loadSender = _tempPending.ValueString("_SENDER", 0);
 
-                                    var tmpDT = dtSysNo.Select("_SYSNO = '" + _senderNbr + "'", "");
-                                    insertMessage(_senderNbr, tmpDT[0]["_CARRIER"].ToString(), _message, _dateTime, _tempPending.ValueString("_REFNO", 0));
+                                        var tmpDT = dtSysNo.Select("_SYSNO = '" + _senderNbr + "'", "");
+                                        insertMessage(_senderNbr, tmpDT[0]["_CARRIER"].ToString(), _message, _dateTime, _tempPending.ValueString("_REFNO", 0));
 
-                                    moveToHistory(
-                                        _loadSender,
-                                        tmpDT[0]["_CARRIER"].ToString(),
-                                        _loadNbr,
-                                        _tempPending.ValueString("_CREDIT", 0),
-                                        _tempPending.ValueString("_MESSAGE", 0),
-                                        _tempPending.ValueString("_REFNO", 0),
-                                        _trcNo,
-                                        _dateTime);
+                                        moveToHistory(
+                                            _loadSender,
+                                            tmpDT[0]["_CARRIER"].ToString(),
+                                            _loadNbr,
+                                            _tempPending.ValueString("_CREDIT", 0),
+                                            _tempPending.ValueString("_MESSAGE", 0),
+                                            _tempPending.ValueString("_REFNO", 0),
+                                            _trcNo,
+                                            _dateTime);
 
-                                    loadDataGrid();
+                                        loadDataGrid();
+                                    }
+                                    catch {
+
+                                    }
                                 }
                                 #endregion
                                 else
@@ -1631,7 +2013,8 @@ namespace SMS_Sender
                                     string _trcNo = "";
                                     string[] _tmpMsg = _message.Split(' ');
 
-                                    _loadNbr = _tmpMsg[6].Replace(".", "").Replace("63", "0").Trim();
+                                    _loadNbr = "0" + _tmpMsg[6].Replace(".", "").Trim().Remove(0, 2);
+
                                     try
                                     {
                                         _trcNo = _tmpMsg[10].Split(':')[2].Trim();
@@ -1640,11 +2023,13 @@ namespace SMS_Sender
 
                                     //READ MESSAGE HERE! TO BE CODED
                                     var _tempPending = db.QueryDT("SELECT * FROM tbl_pending WHERE _PHONE = '" + _loadNbr + "' ORDER BY _DATETIME ASC");
+
+                                    
                                     _loadSender = _tempPending.ValueString("_SENDER", 0);
 
                                     var tmpDT = dtSysNo.Select("_SYSNO = '" + _senderNbr + "'", "");
                                     insertMessage(_senderNbr, tmpDT[0]["_CARRIER"].ToString(), _message, _dateTime, _tempPending.ValueString("_REFNO", 0));
-
+                                   
                                     moveToHistory(
                                         _loadSender,
                                         tmpDT[0]["_CARRIER"].ToString(),
@@ -1668,6 +2053,9 @@ namespace SMS_Sender
                             #endregion
                         }
                         #endregion
+
+                        //sendUSSD(7, "*100#");
+
                         #region USSD REPLY HANDLING
                         if (existing.Contains("+CUSD: "))
                         {
@@ -1676,25 +2064,21 @@ namespace SMS_Sender
                             if (loadQueue.Count > 0)
                             {
                                 string[] tmpArr = loadQueue[0].Split(';');
-                                if (_dat[1].Contains("Mobile Number"))
-                                {
+
+                                if (_dat[1].Contains("Mobile Number")) {
                                     sendUSSD(index, tmpArr[3]);
                                 }
-                                else if (_dat[1].Contains("denomination"))
-                                {
+                                else if (_dat[1].Contains("denomination")) {
                                     sendUSSD(index, tmpArr[1]);
                                 }
-                                else if (_dat[1].Contains("Load " + tmpArr[1] + " to " + tmpArr[3]))
-                                {
+                                else if (_dat[1].Contains("Load " + tmpArr[1] + " to " + tmpArr[3])) {
                                     sendUSSD(index, tmpArr[2]);
                                     loadQueue.RemoveAt(0);
                                 }
-                                else
-                                {
+                                else {
                                     sendUSSD(index, tmpArr[0]);
                                 }
                             }
-
                         }
                         #endregion
                     });
@@ -1924,16 +2308,12 @@ namespace SMS_Sender
             var texter = db.QueryDT("SELECT * FROM tbl_users WHERE _PHONE = '" + texterNbr + "'");
             var trnsfr = db.QueryDT("SELECT * FROM tbl_users WHERE _PHONE = '" + trnsfrNbr + "'");
 
-            MessageBox.Show("SELECT * FROM tbl_users WHERE _PHONE = '" + texterNbr + "'");
-            MessageBox.Show("SELECT * FROM tbl_users WHERE _PHONE = '" + trnsfrNbr + "'");
             if (texter.RowCount() == 1 && trnsfr.RowCount() == 1)
             {
                 var texterRole = dtRoles.Select("_ROLE = '" + texter.ValueString("_ROLE", 0) + "'", "")[0]["_LEVEL"].ToString();
                 var trnsfrRole = dtRoles.Select("_ROLE = '" + trnsfr.ValueString("_ROLE", 0) + "'", "")[0]["_LEVEL"].ToString();
+                
                 output = int.Parse(trnsfrRole) <= int.Parse(texterRole);
-
-                MessageBox.Show("texter role: " + texterRole);
-                MessageBox.Show("transfer role: " + trnsfrRole);
             }
             return output;
         }
@@ -1965,16 +2345,16 @@ namespace SMS_Sender
         }
 
         //CHECK IF HAS TLC TRANSACTION 30 MINS AGO
-        bool has30minsTLC(string sender)
+        bool has30minsTLC(string sender, string amount, string receiver)
         {
-            int count1 = db.QueryDT("SELECT * FROM tbl_tlc WHERE _DATETIME >= NOW() - INTERVAL 30 MINUTE AND _SENDER = '" + sender + "'").RowCount();
+            int count1 = db.QueryDT("SELECT * FROM tbl_tlc WHERE _DATETIME >= NOW() - INTERVAL 30 MINUTE AND _SENDER = '" + sender + "' AND _AMOUNT = '" + amount + "' AND _RECEIVER = '" + receiver + "'").RowCount();
             return count1 != 0;
         }
 
         //CHECK IF HAS PINS TRANSFER 30 MINS AGO
-        bool has30minsPINS(string sender)
+        bool has30minsPINS(string sender, string receiver, string amount)
         {
-            int count1 = db.QueryDT("SELECT * FROM tbl_pin WHERE _DATETIME >= NOW() - INTERVAL 30 MINUTE AND _SENDER = '" + sender + "'").RowCount();
+            int count1 = db.QueryDT("SELECT * FROM tbl_pin WHERE _DATETIME >= NOW() - INTERVAL 30 MINUTE AND _SENDER = '" + sender + "' AND _RECEIVER = '" + receiver + "' AND _PIN_AMT = '" + amount + "'").RowCount();
             return count1 != 0;
         }
 
@@ -2003,6 +2383,7 @@ namespace SMS_Sender
         {
             decimal fnlAmt = amount - (amount * percentLoad);
             decimal bal = db.QueryDT("SELECT * FROM tbl_account WHERE _PHONE = '" + userNbr + "'").ValueDecimal("_BALANCE", 0);
+
             return bal >= fnlAmt;
         }
 
@@ -2028,10 +2409,10 @@ namespace SMS_Sender
         {
             string[] _msg = _message.Split('/');
             //RETAILER
-            if (_msg.Length == 6)
-            {
-                try
-                {
+            if (_msg.Length == 6) {
+                
+                try {
+                    
                     string _nbr = _msg[0].Split(' ')[1];
                     string _pass = _msg[1];
                     string _fullname = _msg[2];
@@ -2044,33 +2425,30 @@ namespace SMS_Sender
 
                     var inserted = insertUser(_nbr, _pass, _fullname, _username, _bdate, _address, _position, _bal, _pins);
 
-                    if (inserted)
-                    {
-                        if (_position == "RETAILER")
-                        {
+                    if (inserted) {
+                        if (_position == "RETAILER") {
                             deductPINS(_senderNbr, "1");
                             var acctINFO = accountInfo(_senderNbr);
                             sendMsg(3, _nbr + " has been registered as Techno User. Remaining TU Pins: " + acctINFO[1], _senderNbr);
                             Thread.Sleep(1000);
                             sendMsg(3, "Congratulations! You are now registerd as Techno User. With USERNAME: " + _username + " and PW: " + _pass + ". NEVER share this information to anyone. You may refer to the product guide for transactions.", _nbr);
                         }
+                        string referenceNumber = InputHelper.GenRefNo;
 
-                        insertMessage(_senderNbr, _carrier, _message, _dateTime, InputHelper.GenRefNo);
+                        insertMessage(_senderNbr, _carrier, _message, _dateTime, referenceNumber);
                         loadDataGrid();
+                        insertActivatedRetailer(_senderNbr, _username, _nbr, _fullname, "0", referenceNumber);
                     }
                     else
                         sendMsg(3, "Registration failed! Username already exists!", _senderNbr);
                 }
-                catch
-                {
+                catch (Exception e){
                     sendMsg(3, "Invalid command. Please make sure your format is correct and your message does not exceed 160 characters.", _senderNbr);
                 }
             }
             //WITH ACTIVATION CODE
-            else if (_msg.Length == 7)
-            {
-                try
-                {
+            else if (_msg.Length == 7) {
+                try {
                     string _nbr = _msg[0].Split(' ')[1];
                     string _code = _msg[1];
                     string _pass = _msg[2];
@@ -2079,17 +2457,13 @@ namespace SMS_Sender
                     string _bdate = _msg[5];
                     string _address = _msg[6];
 
-                    if (isValidCode(_code, _position))
-                    {
+                    if (isValidCode(_code, _position)) {
                         if (!_username.All(char.IsLetterOrDigit) || _pass.Length != 5 || _nbr.Length != 11 || _fullname.Length < 4 || _username.Length < 4)
                             throw new Exception();
 
                         var inserted = insertUser(_nbr, _pass, _fullname, _username, _bdate, _address, _position, _bal, _pins);
-
-                        if (inserted)
-                        {
-                            if (_position == "DISTRIBUTOR" || _position == "DEALER")
-                            {
+                        if (inserted) {
+                            if (_position == "DISTRIBUTOR" || _position == "DEALER") {
                                 deductPINS(_senderNbr, "1");
                                 useCode(_code, _username);
 
@@ -2099,21 +2473,25 @@ namespace SMS_Sender
                                 Thread.Sleep(1000);
                                 sendMsg(3, "Final Step: Get your Product code from your sponsor to register your account on website.", _nbr);
                             }
-                            else if (_position == "MOBILE STOCKIEST" || _position == "CITY STOCKIEST" || _position == "PROVINCIAL STOCKIEST")
-                            {
+                            else if (_position == "MOBILE" || _position == "CITY" || _position == "PROVINCIAL") {
                                 deductPINS(_senderNbr, "1");
                                 useCode(_code, _username);
 
                                 sendMsg(3, "Congratulations! " + _nbr + " has been registered as " + _position + ".", _senderNbr);
                                 Thread.Sleep(1000);
                                 sendMsg(3, "Congratulations! You are now registerd as " + _position + ". With USERNAME: " + _username + " and PW: " + _pass + ". NEVER share this information to anyone. You now have " + _pins + " TU pins.", _nbr);
+                                Thread.Sleep(1000);
+                                sendMsg(3, "Final Step: Get your Product code from your sponsor to register your account on website.", _nbr);
                             }
 
-                            insertMessage(_senderNbr, _carrier, _message, _dateTime, InputHelper.GenRefNo);
+                            string referenceNumber = InputHelper.GenRefNo;
+
+                            insertMessage(_senderNbr, _carrier, _message, _dateTime, referenceNumber);
                             loadDataGrid();
+                            insertActivatedRetailer(_senderNbr, _username, _nbr, _fullname, _pins, referenceNumber);
+
                         }
-                        else
-                        {
+                        else {
                             sendMsg(3, "Registration failed! Username already exists!", _senderNbr);
                         }
 
@@ -2121,8 +2499,7 @@ namespace SMS_Sender
                     else
                         sendMsg(3, "Registration Failed! Invalid Activation Code.", _senderNbr);
                 }
-                catch
-                {
+                catch (Exception e) {
                     sendMsg(3, "Invalid command. Please make sure your format is correct and your message does not exceed 160 characters.", _senderNbr);
                 }
             }
@@ -2135,6 +2512,58 @@ namespace SMS_Sender
         {
             db.Query("UPDATE tbl_account set _BALANCE = _BALANCE - " + (amount - (amount * percentLoad)).ToString() + " WHERE _PHONE = '" + sender + "'");
             db.Query("UPDATE tbl_account set _BALANCE = _BALANCE + " + amount + " WHERE _PHONE = '" + receiver + "'");
+        }
+
+        //PERCENTAGE DEDUCTIONS WHEN TRANSFERING
+        decimal setPercentToBeDeducted(string sender, string receiver) {
+
+            decimal percentLoad = 0.00M;
+
+            string senderRole = db.QueryDT("SELECT * FROM tbl_users WHERE _PHONE = '" + sender + "'").ValueString("_ROLE", 0).Split(' ')[0].Trim();
+            string receiverRole = db.QueryDT("SELECT * FROM tbl_users WHERE _PHONE = '" + receiver + "'").ValueString("_ROLE", 0).Split(' ')[0].Trim();
+
+            int senderLevel = db.QueryDT("SELECT * FROM tbl_role WHERE _ROLE LIKE '%" + senderRole + "'").ValueInt("_LEVEL", 0);
+            int receiverLevel = db.QueryDT("SELECT * FROM tbl_role WHERE _ROLE LIKE '%" + receiverRole + "'").ValueInt("_LEVEL", 0);
+
+            if (senderLevel == receiverLevel) {
+                percentLoad = 0.00M;
+            }
+            else {
+                if (!userExists(receiver)) {
+                    for (int i = 0; i < (senderLevel - receiverLevel); i++) {
+                        percentLoad = percentLoad + db.QueryDT("SELECT * FROM tbl_percentage WHERE _LEVEL = '" + (receiverLevel + i).ToString() + "'").ValueDecimal("_PERCENTAGE", 0);
+                    }
+                }
+                else {
+                    for (int i = 1; i <= (senderLevel - receiverLevel); i++) {
+                        percentLoad = percentLoad + db.QueryDT("SELECT * FROM tbl_percentage WHERE _LEVEL = '" + (receiverLevel + i).ToString() + "'").ValueDecimal("_PERCENTAGE", 0);
+                    }
+                }
+            }
+            return percentLoad;
+        }
+
+        //CHECK IF CODE IS CORRECT
+        bool isCodeElligible(string senderNumber, string activationCode) {
+            bool codeCorrect = false;
+
+            string codeRoleType = db.QueryDT("SELECT * FROM tbl_act_code WHERE _CODE = '" + activationCode + "'").ValueString("_TYPE", 0);
+            int codeLevel = db.QueryDT("SELECT * FROM tbl_percentage WHERE _LEVEL = '" + codeRoleType + "'").ValueInt("_LEVEL", 0);
+
+            string senderRole = db.QueryDT("SELECT * FROM tbl_users WHERE _PHONE = '" + senderNumber + "'").ValueString("_ROLE", 0);
+            int senderLevel = db.QueryDT("SELECT * FROM tbl_percentage WHERE _LEVEL = '" + senderRole + "'").ValueInt("_LEVEL", 0);
+
+            bool levelOk = senderLevel >= codeLevel;
+            bool codeUsed = db.QueryDT("SELECT * FROM tbl_act_code WHERE _CODE = '" + activationCode + "'").ValueString("_USED", 0) == "YES";
+
+            if (levelOk) {
+                codeCorrect = true;
+            }
+            else {
+                sendMsg(3, "Activation Failed. You can not activate users that are higher than your position.", senderNumber);
+            }
+
+            return codeCorrect;
         }
 
         //TRANSFER LOAD WALLET TO CERTAIN NUMBER
@@ -2188,11 +2617,21 @@ namespace SMS_Sender
                 "', _DATETIME = '" + datetime + "'");
         }
 
+        void recordIncome(string phoneNumber, decimal income, string type, string referenceNo, string dateTime) {
+            db.Query("INSERT INTO tbl_income SET _PHONE = '" + phoneNumber +
+                "', _INCOME = '" + income +
+                "', _TYPE = '" + type +
+                "', _REFERENCE_NO = '" + referenceNo +
+                "', _DATETIME = '" + dateTime + "'");
+        }
+
         //INSERT HELP
-        void insertHelp(string sender, string message, string datetime, string status)
+        void insertHelp(string sender, string referenceNo, string dateOfIncident, string code, string datetime, string status)
         {
             db.Query("INSERT INTO tbl_help SET _SENDER = '" + sender +
-                "', _MESSAGE = '" + message +
+                "', _REFERENCE_NO = '" + referenceNo +
+                "', _DATE_OF_INCIDENT = '" + dateOfIncident +
+                "', _CODE = '" + code +
                 "', _DATETIME = '" + datetime +
                 "', _STATUS = '" + status +"'");
         }
@@ -2252,6 +2691,17 @@ namespace SMS_Sender
                 "', _REFNO = '" + refno + "'");
         }
 
+        //INSERT ACTIVATED RETAILER
+        void insertActivatedRetailer(string activatorNumber, string username, string phoneNumber, string fullName, string pins, string referenceNumber) {
+            
+            db.Query("INSERT INTO tbl_act_ret SET _ACTIVATOR_NUMBER = '" + activatorNumber +
+                "', _USERNAME = '" + username +
+                "', _PHONE = '" + phoneNumber +
+                "', _NAME = '" + fullName +
+                "', _PINS = '" + pins +
+                "', _REFNO = '" + referenceNumber + "'");
+        }
+
         //INSERT TLC History
         void insertTLCHistory(string sender, string senderbal, string receiver, string receiverbal, string refno, string datetime, string amount)
         {
@@ -2260,7 +2710,7 @@ namespace SMS_Sender
                 "', _RECEIVER = '" + receiver +
                 "', _RECEIVER_BAL = '" + receiverbal +
                 "', _REFNO = '" + refno +
-                "', _DATETIME = '" + datetime + "', _AMOUNT = '" + amount);
+                "', _DATETIME = '" + datetime + "', _AMOUNT = '" + amount + "'");
         }
 
         //INSERT PIN Transfer History

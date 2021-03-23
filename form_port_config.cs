@@ -141,7 +141,7 @@ namespace SMS_Sender
         {
             ManagementObjectCollection ManObjReturn;
             ManagementObjectSearcher ManObjSearch;
-            ManObjSearch = new ManagementObjectSearcher("Select * from Win32_PnPEntity WHERE Name LIKE '%USB Serial Device%'");
+            ManObjSearch = new ManagementObjectSearcher("Select * from Win32_PnPEntity WHERE Name LIKE '%XR21V1414 USB UART Ch%'");
             ManObjReturn = ManObjSearch.Get();
             List<string> tempList = new List<string>();
 

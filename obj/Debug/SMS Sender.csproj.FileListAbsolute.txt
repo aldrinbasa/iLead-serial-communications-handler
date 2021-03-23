@@ -33,3 +33,22 @@ C:\Users\aldri\Documents\Visual Studio 2019\SMS Sender\obj\Debug\SMS Sender.cspr
 C:\Users\aldri\Documents\Visual Studio 2019\SMS Sender\obj\Debug\SMS Sender.exe
 C:\Users\aldri\Documents\Visual Studio 2019\SMS Sender\obj\Debug\SMS Sender.pdb
 C:\Users\aldri\Documents\Visual Studio 2019\SMS Sender\obj\Debug\SMS_Sender.form_port_assign.resources
+E:\iLead\SMS Sender\bin\Debug\SMS Sender.exe.config
+E:\iLead\SMS Sender\bin\Debug\SMS Sender.exe
+E:\iLead\SMS Sender\bin\Debug\SMS Sender.pdb
+E:\iLead\SMS Sender\bin\Debug\MySql.Data.dll
+E:\iLead\SMS Sender\obj\Debug\SMS Sender.csprojAssemblyReference.cache
+E:\iLead\SMS Sender\obj\Debug\SMS_Sender.form_add_promo.resources
+E:\iLead\SMS Sender\obj\Debug\SMS_Sender.form_adjust.resources
+E:\iLead\SMS Sender\obj\Debug\SMS_Sender.form_edit_promo.resources
+E:\iLead\SMS Sender\obj\Debug\SMS_Sender.form_generate.resources
+E:\iLead\SMS Sender\obj\Debug\SMS_Sender.form_help_reply.resources
+E:\iLead\SMS Sender\obj\Debug\SMS_Sender.form_main.resources
+E:\iLead\SMS Sender\obj\Debug\SMS_Sender.form_port_assign.resources
+E:\iLead\SMS Sender\obj\Debug\SMS_Sender.form_port_config.resources
+E:\iLead\SMS Sender\obj\Debug\SMS_Sender.Properties.Resources.resources
+E:\iLead\SMS Sender\obj\Debug\SMS Sender.csproj.GenerateResource.cache
+E:\iLead\SMS Sender\obj\Debug\SMS Sender.csproj.CoreCompileInputs.cache
+E:\iLead\SMS Sender\obj\Debug\SMS Sender.csproj.CopyComplete
+E:\iLead\SMS Sender\obj\Debug\SMS Sender.exe
+E:\iLead\SMS Sender\obj\Debug\SMS Sender.pdb
